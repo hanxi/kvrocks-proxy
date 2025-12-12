@@ -1,0 +1,87 @@
+#>
+<tool_name>create_file</tool_name>
+<file_path>.gitignore</file_path>
+<file Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binary, built with `_content># Binaries for programs and pluginsgo test -c`
+*.test
+
+# Output of the go coverage tool, specifically when used with LiteIDE
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binary, built with `go test -c`
+*.test
+
+# Output of the go coverage tool, specifically when used with LiteIDE
+*.out
+
+# Go
+*.out
+
+# Go workspace file
+go.work
+
+# Dependency directories (remove the comment below to include it)
+# workspace file
+go.work
+
+# Dependency directories (remove the comment below to vendor/
+
+# Build output
+/kvrocks-proxy
+/bin include it)
+# vendor/
+
+# Build output
+//
+/kvrocks-proxydist/
+
+# IDE specific files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+/bin/
+/dist/
+
+# IDE
+.DS_Store
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Log files
+*.log
+
+# specific files
+.vscode/
+. Temporary files
+tmpidea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Log files
+*.log
+
+# Temporary files
+tmp/
+temp/
