@@ -62,7 +62,7 @@ RUN echo '#!/bin/bash' > /root/start.sh && \
     echo '' >> /root/start.sh && \
     echo '# 启动kvrocks-proxy' >> /root/start.sh && \
     echo 'ADDR=${ADDR:-:6379}' >> /root/start.sh && \
-    echo 'KVADDR=127.0.0.1:6666' >> /root/start.sh && \
+    echo 'KVADDR=${KVADDR:-127.0.0.1:6666}' >> /root/start.sh && \
     echo 'echo "Starting kvrocks-proxy on $ADDR, connecting to kvrocks at $KVADDR"' >> /root/start.sh && \
     echo 'kvrocks-proxy -addr "$ADDR" -kvaddr "$KVADDR" &' >> /root/start.sh && \
     echo 'PROXY_PID=$!' >> /root/start.sh && \
