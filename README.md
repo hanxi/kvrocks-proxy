@@ -52,26 +52,35 @@ GET key
 
 ### Docker 部署
 
-构建镜像：
+#### 使用预构建镜像（推荐）
+
+直接从 Docker Hub 拉取并运行：
 
 ```bash
-docker build -t kvrocks-proxy .
+# 拉取最新镜像
+docker pull hanxi/kvrocks-proxy:latest
+
+# 基本运行（使用容器内置的 Kvrocks）
+docker run -d -p 6379:6379 hanxi/kvrocks-proxy:latest
+
+# 自定义监听地址
+docker run -d -p 6379:6379 \
+  -e ADDR=:6379 \
+  hanxi/kvrocks-proxy:latest
 ```
 
-运行容器：
+Docker Hub 地址：https://hub.docker.com/r/hanxi/kvrocks-proxy
+
+#### 本地构建镜像
+
+如果需要自定义构建：
 
 ```bash
-# 基本运行
-docker run -p 6379:6379 kvrocks-proxy
+# 构建镜像
+docker build -t kvrocks-proxy .
 
-# 自定义配置
-docker run -p 6379:6379 \
-  -e ADDR=:6379 \
-  -e KVADDR=your-kvrocks-host:6666 \
-  kvrocks-proxy
-
-# 使用 Docker Compose
-docker-compose up -d
+# 运行容器
+docker run -d -p 6379:6379 kvrocks-proxy
 ```
 
 ## 配置参数
