@@ -12,10 +12,8 @@ COPY . .
 # 构建应用
 RUN go build -o kvrocks-proxy .
 
-# 使用alpine镜像作为运行环境
-FROM --platform=$TARGETPLATFORM alpine:3.19
+FROM debian:bookworm-slim
 
-RUN apk add --no-cache ca-certificates bash
 WORKDIR /root/
 
 # 从builder阶段复制预构建的二进制文件
