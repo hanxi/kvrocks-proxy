@@ -14,6 +14,12 @@ RUN go build -o kvrocks-proxy .
 
 FROM debian:bookworm-slim
 
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    libssl3 \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /root/
 
 # 从builder阶段复制预构建的二进制文件
