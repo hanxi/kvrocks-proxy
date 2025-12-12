@@ -15,7 +15,7 @@ RUN go build -o kvrocks-proxy .
 # 使用alpine镜像作为运行环境
 FROM alpine:latest
 
-RUN apk --no-cache add ca-certificates bash
+RUN apk update && apk add --no-cache ca-certificates bash
 WORKDIR /root/
 
 # 从builder阶段复制预构建的二进制文件
