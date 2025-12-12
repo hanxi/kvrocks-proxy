@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"reflect"
 	"strings"
 
 	"github.com/redis/go-redis/v9"
@@ -14,6 +15,7 @@ import (
 func main() {
 	var addr = flag.String("addr", ":6379", "proxy address")
 	var kvAddr = flag.String("kvaddr", "127.0.0.1:6666", "kvrocks server address")
+	var kvPassword = flag.String("kvpassword", "abc", "kvrocks server password")
 	flag.Parse()
 
 	err := redcon.ListenAndServe(*addr,
@@ -23,7 +25,8 @@ func main() {
 		},
 		func(conn redcon.Conn) bool {
 			kvClient := redis.NewClient(&redis.Options{
-				Addr: *kvAddr,
+				Addr:     *kvAddr,
+				Password: *kvPassword, // 使用命令行参数配置的密码
 			})
 			conn.SetContext(kvClient)
 			log.Printf("新客户端连接: %s", conn.RemoteAddr())
@@ -90,9 +93,49 @@ func handleCommand(conn redcon.Conn, cmd redcon.Command, kvClient *redis.Client)
 		conn.WriteBulkString(v)
 	case int64:
 		conn.WriteInt(int(v))
+	case []interface{}:
+		// 处理数组类型（如 KEYS 命令返回的结果）
+		conn.WriteArray(len(v))
+		for _, item := range v {
+			if str, ok := item.(string); ok {
+				conn.WriteBulkString(str)
+			} else {
+				conn.WriteBulkString(fmt.Sprint(item))
+			}
+		}
+	case map[string]string:
+		// 处理哈希表类型（如 HGETALL 命令返回的结果）
+		conn.WriteArray(len(v) * 2) // 键值对，所以长度是 map 长度的 2 倍
+		for key, value := range v {
+			conn.WriteBulkString(key)
+			conn.WriteBulkString(value)
+		}
+	case map[interface{}]interface{}:
+		// 处理 interface{} 类型的哈希表（Kvrocks 返回的实际类型）
+		conn.WriteArray(len(v) * 2) // 键值对，所以长度是 map 长度的 2 倍
+		for key, value := range v {
+			conn.WriteBulkString(fmt.Sprint(key))
+			conn.WriteBulkString(fmt.Sprint(value))
+		}
+	case []string:
+		// 处理字符串数组
+		conn.WriteArray(len(v))
+		for _, str := range v {
+			conn.WriteBulkString(str)
+		}
 	case nil:
 		conn.WriteNull()
 	default:
-		conn.WriteBulkString(fmt.Sprint(v))
+		// 对于未知类型，尝试使用反射处理
+		rv := reflect.ValueOf(v)
+		if rv.Kind() == reflect.Slice {
+			conn.WriteArray(rv.Len())
+			for i := 0; i < rv.Len(); i++ {
+				item := rv.Index(i).Interface()
+				conn.WriteBulkString(fmt.Sprint(item))
+			}
+		} else {
+			conn.WriteBulkString(fmt.Sprint(v))
+		}
 	}
 }
