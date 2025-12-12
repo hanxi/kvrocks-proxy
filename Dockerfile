@@ -23,34 +23,39 @@ COPY --from=builder /app/kvrocks-proxy /bin/
 COPY --from=apache/kvrocks /bin/kvrocks /bin/
 
 # 创建kvrocks配置文件
-RUN mkdir -p /var/lib/kvrocks && \
-    echo "bind 0.0.0.0" > /etc/kvrocks.conf && \
-    echo "port 6666" >> /etc/kvrocks.conf && \
-    echo "dir /var/lib/kvrocks" >> /etc/kvrocks.conf && \
-    echo "requirepass \"\"" >> /etc/kvrocks.conf && \
-    echo "" >> /etc/kvrocks.conf && \
-    echo "################################ NAMESPACE #####################################" >> /etc/kvrocks.conf && \
-    echo "# 预配置 namespace，对应 Redis 的 db0-db15" >> /etc/kvrocks.conf && \
-    echo "namespace.ns0 ns0" >> /etc/kvrocks.conf && \
-    echo "namespace.ns1 ns1" >> /etc/kvrocks.conf && \
-    echo "namespace.ns2 ns2" >> /etc/kvrocks.conf && \
-    echo "namespace.ns3 ns3" >> /etc/kvrocks.conf && \
-    echo "namespace.ns4 ns4" >> /etc/kvrocks.conf && \
-    echo "namespace.ns5 ns5" >> /etc/kvrocks.conf && \
-    echo "namespace.ns6 ns6" >> /etc/kvrocks.conf && \
-    echo "namespace.ns7 ns7" >> /etc/kvrocks.conf && \
-    echo "namespace.ns8 ns8" >> /etc/kvrocks.conf && \
-    echo "namespace.ns9 ns9" >> /etc/kvrocks.conf && \
-    echo "namespace.ns10 ns10" >> /etc/kvrocks.conf && \
-    echo "namespace.ns11 ns11" >> /etc/kvrocks.conf && \
-    echo "namespace.ns12 ns12" >> /etc/kvrocks.conf && \
-    echo "namespace.ns13 ns13" >> /etc/kvrocks.conf && \
-    echo "namespace.ns14 ns14" >> /etc/kvrocks.conf && \
-    echo "namespace.ns15 ns15" >> /etc/kvrocks.conf
+RUN mkdir -p /var/lib/kvrocks
 
-# 创建启动脚本
+# 创建启动脚本（需要在原有启动脚本之前添加配置文件生成逻辑）
 RUN echo '#!/bin/bash' > /root/start.sh && \
     echo 'set -e' >> /root/start.sh && \
+    echo '' >> /root/start.sh && \
+    echo '# 生成kvrocks配置文件' >> /root/start.sh && \
+    echo 'KVROCKS_PASSWORD=${KVROCKS_PASSWORD:-}' >> /root/start.sh && \
+    echo 'cat > /etc/kvrocks.conf <<EOF' >> /root/start.sh && \
+    echo 'bind 0.0.0.0' >> /root/start.sh && \
+    echo 'port 6666' >> /root/start.sh && \
+    echo 'dir /var/lib/kvrocks' >> /root/start.sh && \
+    echo 'requirepass "$KVROCKS_PASSWORD"' >> /root/start.sh && \
+    echo '' >> /root/start.sh && \
+    echo '################################ NAMESPACE #####################################' >> /root/start.sh && \
+    echo '# 预配置 namespace，对应 Redis 的 db0-db15' >> /root/start.sh && \
+    echo 'namespace.ns0 ns0' >> /root/start.sh && \
+    echo 'namespace.ns1 ns1' >> /root/start.sh && \
+    echo 'namespace.ns2 ns2' >> /root/start.sh && \
+    echo 'namespace.ns3 ns3' >> /root/start.sh && \
+    echo 'namespace.ns4 ns4' >> /root/start.sh && \
+    echo 'namespace.ns5 ns5' >> /root/start.sh && \
+    echo 'namespace.ns6 ns6' >> /root/start.sh && \
+    echo 'namespace.ns7 ns7' >> /root/start.sh && \
+    echo 'namespace.ns8 ns8' >> /root/start.sh && \
+    echo 'namespace.ns9 ns9' >> /root/start.sh && \
+    echo 'namespace.ns10 ns10' >> /root/start.sh && \
+    echo 'namespace.ns11 ns11' >> /root/start.sh && \
+    echo 'namespace.ns12 ns12' >> /root/start.sh && \
+    echo 'namespace.ns13 ns13' >> /root/start.sh && \
+    echo 'namespace.ns14 ns14' >> /root/start.sh && \
+    echo 'namespace.ns15 ns15' >> /root/start.sh && \
+    echo 'EOF' >> /root/start.sh && \
     echo '' >> /root/start.sh && \
     echo '# 启动kvrocks' >> /root/start.sh && \
     echo 'kvrocks -c /etc/kvrocks.conf &' >> /root/start.sh && \
