@@ -105,7 +105,8 @@ func handleCommand(conn redcon.Conn, cmd redcon.Command, kvClient *redis.Client)
 
 	result := kvClient.Do(context.Background(), args...)
 
-	if result.Err() != nil {
+	// redis.Nil 表示 key 不存在，这是正常情况，不是错误
+	if result.Err() != nil && result.Err() != redis.Nil {
 		if debug {
 			log.Printf("[DEBUG] 命令执行失败: %v", result.Err())
 		}
