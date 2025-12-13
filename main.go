@@ -12,10 +12,19 @@ import (
 	"github.com/tidwall/redcon"
 )
 
+var debug bool
+
 func main() {
 	var addr = flag.String("addr", ":6379", "proxy address")
 	var kvAddr = flag.String("kvaddr", "127.0.0.1:6666", "kvrocks server address")
+	flag.BoolVar(&debug, "debug", false, "enable debug mode")
 	flag.Parse()
+
+	if debug {
+		log.Println("调试模式已启用")
+		log.Printf("代理地址: %s", *addr)
+		log.Printf("Kvrocks 服务器地址: %s", *kvAddr)
+	}
 
 	err := redcon.ListenAndServe(*addr,
 		func(conn redcon.Conn, cmd redcon.Command) {
@@ -55,6 +64,14 @@ func handleCommand(conn redcon.Conn, cmd redcon.Command, kvClient *redis.Client)
 
 	cmdName := strings.ToUpper(string(cmd.Args[0]))
 
+	if debug {
+		args := make([]string, len(cmd.Args))
+		for i, arg := range cmd.Args {
+			args[i] = string(arg)
+		}
+		log.Printf("[DEBUG] 收到命令: %s, 参数: %v, 客户端: %s", cmdName, args, conn.RemoteAddr())
+	}
+
 	// SELECT db -> AUTH nsdb
 	if cmdName == "SELECT" {
 		if len(cmd.Args) < 2 {
@@ -62,10 +79,19 @@ func handleCommand(conn redcon.Conn, cmd redcon.Command, kvClient *redis.Client)
 			return
 		}
 		db := string(cmd.Args[1])
+		if debug {
+			log.Printf("[DEBUG] SELECT 命令转换为 AUTH %s", db)
+		}
 		result := kvClient.Do(context.Background(), "AUTH", db)
 		if result.Err() != nil {
+			if debug {
+				log.Printf("[DEBUG] AUTH 命令失败: %v", result.Err())
+			}
 			conn.WriteError(result.Err().Error())
 		} else {
+			if debug {
+				log.Printf("[DEBUG] AUTH 命令成功")
+			}
 			conn.WriteString("OK")
 		}
 		return
@@ -80,8 +106,15 @@ func handleCommand(conn redcon.Conn, cmd redcon.Command, kvClient *redis.Client)
 	result := kvClient.Do(context.Background(), args...)
 
 	if result.Err() != nil {
+		if debug {
+			log.Printf("[DEBUG] 命令执行失败: %v", result.Err())
+		}
 		conn.WriteError(result.Err().Error())
 		return
+	}
+
+	if debug {
+		log.Printf("[DEBUG] 命令执行成功, 返回类型: %T", result.Val())
 	}
 
 	switch v := result.Val().(type) {

@@ -40,8 +40,18 @@ sleep 2
 # 启动kvrocks-proxy
 addr=${ADDR:-:6379}
 kvaddr=${KVADDR:-127.0.0.1:6666}
-echo "Starting kvrocks-proxy on $ADDR, connecting to kvrocks at $kvaddr"
-kvrocks-proxy -addr "$addr" -kvaddr "$kvaddr" &
+debug=${DEBUG:-false}
+
+# 构建启动命令
+proxy_cmd="kvrocks-proxy -addr \"$addr\" -kvaddr \"$kvaddr\""
+if [ "$debug" = "true" ]; then
+    proxy_cmd="$proxy_cmd -debug"
+    echo "Starting kvrocks-proxy on $addr, connecting to kvrocks at $kvaddr (DEBUG MODE)"
+else
+    echo "Starting kvrocks-proxy on $addr, connecting to kvrocks at $kvaddr"
+fi
+
+eval $proxy_cmd &
 proxy_pid=$!
 echo "kvrocks-proxy started with PID: $proxy_pid"
 
