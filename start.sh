@@ -11,22 +11,22 @@ requirepass "$KVROCKS_PASSWORD"
 
 ################################ NAMESPACE #####################################
 # 预配置 namespace，对应 Redis 的 db0-db15
-namespace.ns0 ns0
-namespace.ns1 ns1
-namespace.ns2 ns2
-namespace.ns3 ns3
-namespace.ns4 ns4
-namespace.ns5 ns5
-namespace.ns6 ns6
-namespace.ns7 ns7
-namespace.ns8 ns8
-namespace.ns9 ns9
-namespace.ns10 ns10
-namespace.ns11 ns11
-namespace.ns12 ns12
-namespace.ns13 ns13
-namespace.ns14 ns14
-namespace.ns15 ns15
+namespace.db0 0
+namespace.db1 1
+namespace.db2 2
+namespace.db3 3
+namespace.db4 4
+namespace.db5 5
+namespace.db6 6
+namespace.db7 7
+namespace.db8 8
+namespace.db9 9
+namespace.db10 10
+namespace.db11 11
+namespace.db12 12
+namespace.db13 13
+namespace.db14 14
+namespace.db15 15
 EOF
 
 # 启动kvrocks

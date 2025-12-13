@@ -64,9 +64,7 @@ func handleCommand(conn redcon.Conn, cmd redcon.Command, kvClient *redis.Client)
 			return
 		}
 		db := string(cmd.Args[1])
-		namespace := "ns" + db
-
-		result := kvClient.Do(context.Background(), "AUTH", namespace)
+		result := kvClient.Do(context.Background(), "AUTH", db)
 		if result.Err() != nil {
 			conn.WriteError(result.Err().Error())
 		} else {
