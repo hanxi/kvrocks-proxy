@@ -20,6 +20,7 @@ RUN apt-get update && \
     libatomic1 \
     libgcc-s1 \
     ca-certificates \
+    redis-tools \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /root/
