@@ -115,19 +115,32 @@ func handleCommand(conn redcon.Conn, cmd redcon.Command, kvClient *redis.Client)
 	}
 
 	if debug {
-		log.Printf("[DEBUG] 命令执行成功, 返回类型: %T", result.Val())
+		resultVal := result.Val()
+		log.Printf("[DEBUG] 命令执行成功, 返回类型: %T, 返回值: %+v", resultVal, resultVal)
 	}
 
 	switch v := result.Val().(type) {
 	case string:
+		if debug {
+			log.Printf("[DEBUG] 返回字符串: %s", v)
+		}
 		conn.WriteBulkString(v)
 	case int64:
-		conn.WriteInt(int(v))
+		if debug {
+			log.Printf("[DEBUG] 返回整数: %d", v)
+		}
+		conn.WriteInt64(v)
 	case []interface{}:
-		// 处理数组类型（如 KEYS 命令返回的结果）
+		// 处理数组类型（如 KEYS、HMGET 命令返回的结果）
+		if debug {
+			log.Printf("[DEBUG] 返回数组, 长度: %d, 内容: %+v", len(v), v)
+		}
 		conn.WriteArray(len(v))
 		for _, item := range v {
-			if str, ok := item.(string); ok {
+			if item == nil {
+				// HMGET 等命令中，nil 表示字段不存在
+				conn.WriteNull()
+			} else if str, ok := item.(string); ok {
 				conn.WriteBulkString(str)
 			} else {
 				conn.WriteBulkString(fmt.Sprint(item))
@@ -135,6 +148,9 @@ func handleCommand(conn redcon.Conn, cmd redcon.Command, kvClient *redis.Client)
 		}
 	case map[string]string:
 		// 处理哈希表类型（如 HGETALL 命令返回的结果）
+		if debug {
+			log.Printf("[DEBUG] 返回 map[string]string, 长度: %d, 内容: %+v", len(v), v)
+		}
 		conn.WriteArray(len(v) * 2) // 键值对，所以长度是 map 长度的 2 倍
 		for key, value := range v {
 			conn.WriteBulkString(key)
@@ -142,6 +158,9 @@ func handleCommand(conn redcon.Conn, cmd redcon.Command, kvClient *redis.Client)
 		}
 	case map[interface{}]interface{}:
 		// 处理 interface{} 类型的哈希表（Kvrocks 返回的实际类型）
+		if debug {
+			log.Printf("[DEBUG] 返回 map[interface{}]interface{}, 长度: %d, 内容: %+v", len(v), v)
+		}
 		conn.WriteArray(len(v) * 2) // 键值对，所以长度是 map 长度的 2 倍
 		for key, value := range v {
 			conn.WriteBulkString(fmt.Sprint(key))
@@ -149,20 +168,33 @@ func handleCommand(conn redcon.Conn, cmd redcon.Command, kvClient *redis.Client)
 		}
 	case []string:
 		// 处理字符串数组
+		if debug {
+			log.Printf("[DEBUG] 返回字符串数组, 长度: %d, 内容: %+v", len(v), v)
+		}
 		conn.WriteArray(len(v))
 		for _, str := range v {
 			conn.WriteBulkString(str)
 		}
 	case nil:
+		if debug {
+			log.Printf("[DEBUG] 返回 nil")
+		}
 		conn.WriteNull()
 	default:
 		// 对于未知类型，尝试使用反射处理
 		rv := reflect.ValueOf(v)
+		if debug {
+			log.Printf("[DEBUG] 返回未知类型, Kind: %v, 值: %+v", rv.Kind(), v)
+		}
 		if rv.Kind() == reflect.Slice {
 			conn.WriteArray(rv.Len())
 			for i := 0; i < rv.Len(); i++ {
 				item := rv.Index(i).Interface()
-				conn.WriteBulkString(fmt.Sprint(item))
+				if item == nil {
+					conn.WriteNull()
+				} else {
+					conn.WriteBulkString(fmt.Sprint(item))
+				}
 			}
 		} else {
 			conn.WriteBulkString(fmt.Sprint(v))
