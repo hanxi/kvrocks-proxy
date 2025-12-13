@@ -15,7 +15,6 @@ import (
 func main() {
 	var addr = flag.String("addr", ":6379", "proxy address")
 	var kvAddr = flag.String("kvaddr", "127.0.0.1:6666", "kvrocks server address")
-	var kvPassword = flag.String("kvpassword", "abc", "kvrocks server password")
 	flag.Parse()
 
 	err := redcon.ListenAndServe(*addr,
@@ -25,8 +24,7 @@ func main() {
 		},
 		func(conn redcon.Conn) bool {
 			kvClient := redis.NewClient(&redis.Options{
-				Addr:     *kvAddr,
-				Password: *kvPassword, // 使用命令行参数配置的密码
+				Addr: *kvAddr,
 			})
 			conn.SetContext(kvClient)
 			log.Printf("新客户端连接: %s", conn.RemoteAddr())
